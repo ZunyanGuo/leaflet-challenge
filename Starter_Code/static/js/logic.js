@@ -1,9 +1,12 @@
   // Store our API endpoint as queryUrl.
 let queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson"
 
+// Create function to get marker size
 function markerSize(mag){
   return mag *15000
 };
+
+// Create function to choose color for markers
 function choosecolor(depth){
   if (depth > -10 && depth <= 10){return "rgb(95, 255, 0)";
   }else if (depth > 10 && depth <= 30){return "rgb(200, 255, 0)";
@@ -13,6 +16,7 @@ function choosecolor(depth){
   }else if (depth > 90){return "rgb(255, 70, 60)"};
 
 };
+
 // Perform a GET request to the query URL/
 d3.json(queryUrl).then(function (response) {
     features = response.features;
@@ -27,7 +31,7 @@ d3.json(queryUrl).then(function (response) {
                 fillColor: choosecolor(features[i].geometry.coordinates[2]),
                 radius: markerSize(features[i].properties.mag)
                 
-            }).bindPopup(`<h1>${features[i].properties.place}</h1> <hr> <h3>Depth: ${features[i].geometry.coordinates[2]} km</h3>`))
+            }).bindPopup(`<h1>${features[i].properties.place}</h1> <hr> <h3>Mag: ${features[i].properties.mag} </h3><h3>Depth: ${features[i].geometry.coordinates[2]} km</h3>`))
       
       };
 
@@ -64,6 +68,8 @@ L.control.layers(baseMaps, overlayMaps, {
     collapsed: false
   }).addTo(myMap);
   
+
+// Add legend to the map.
   let legend = L.control({ position: 'bottomright' });
 
   legend.onAdd = function () {
@@ -73,17 +79,17 @@ L.control.layers(baseMaps, overlayMaps, {
     div.style.borderRadius = '5px'; // Increase the border radius
 
     
-
+    
     let depthRanges = [
       { label: '-10-10 ', color: 'rgb(95, 255, 0)' },
       { label: '10-30 ', color: 'rgb(200, 255, 0)' },
       { label: '30-50 ', color: 'rgb(240, 220, 0)' },
       { label: '50-70 ', color: 'rgb(255, 155, 0)' },
-      { label: '70-90 ', color: 'rgb(255, 120, 60)' },
+      { label: '70-90 ', color: 'rgb(255, 120, 60)'},
       { label: '90+ ', color: 'rgb(255, 70, 60)' }
     ];
 
-    depthRanges.forEach(function (range) {
+   depthRanges.forEach(function (range) {
       
       let legendItem = document.createElement('div');
       legendItem.classList.add('legend-item');
