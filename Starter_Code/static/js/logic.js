@@ -1,6 +1,18 @@
   // Store our API endpoint as queryUrl.
 let queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_week.geojson"
 
+function markerSize(mag){
+  return mag *15000
+};
+function choosecolor(depth){
+  if (depth > -10 && depth <= 10){return "rgb(95, 255, 0)";
+  }else if (depth > 10 && depth <= 30){return "rgb(200, 255, 0)";
+  }else if (depth > 30 && depth <= 50){return "rgb(240, 220, 0)";
+  }else if (depth > 50 && depth <= 70){return "rgb(255, 155, 0)";
+  }else if (depth > 70 && depth<= 90){return "rgb(255, 120, 60)";
+  }else if (depth > 90){return "rgb(255, 70, 60)"};
+
+};
 // Perform a GET request to the query URL/
 d3.json(queryUrl).then(function (response) {
     features = response.features;
@@ -11,11 +23,11 @@ d3.json(queryUrl).then(function (response) {
             L.circle([features[i].geometry.coordinates[1],features[i].geometry.coordinates[0]], {
                 stroke: false,
                 fillOpacity: 0.75,
-                color: "white",
-                fillColor: "red",
-                radius: features[i].properties.mag *20000
+                color: "black",
+                fillColor: choosecolor(features[i].geometry.coordinates[2]),
+                radius: markerSize(features[i].properties.mag)
                 
-            }))
+            }).bindPopup(`<h1>${features[i].properties.place}</h1> <hr> <h3>Depth: ${features[i].geometry.coordinates[2]} km</h3>`))
       
       };
 
@@ -51,7 +63,44 @@ let myMap = L.map("map", {
 L.control.layers(baseMaps, overlayMaps, {
     collapsed: false
   }).addTo(myMap);
+  
+  let legend = L.control({ position: 'bottomright' });
+
+  legend.onAdd = function () {
+    let div = L.DomUtil.create('div', 'legend');
+    div.style.backgroundColor = 'rgba(255, 255, 255, 0.8)'; // Set the background color
+    div.style.padding = '15px'; // Increase the padding
+    div.style.borderRadius = '5px'; // Increase the border radius
+
+    
+
+    let depthRanges = [
+      { label: '-10-10 ', color: 'rgb(95, 255, 0)' },
+      { label: '10-30 ', color: 'rgb(200, 255, 0)' },
+      { label: '30-50 ', color: 'rgb(240, 220, 0)' },
+      { label: '50-70 ', color: 'rgb(255, 155, 0)' },
+      { label: '70-90 ', color: 'rgb(255, 120, 60)' },
+      { label: '90+ ', color: 'rgb(255, 70, 60)' }
+    ];
+
+    depthRanges.forEach(function (range) {
+      
+      let legendItem = document.createElement('div');
+      legendItem.classList.add('legend-item');
+      legendItem.innerHTML = `
+        <div class="legend-color" style="background-color: ${range.color}"></div>
+        <div>${range.label}</div>
+      `;
+    
+      div.appendChild(legendItem);
+    });
+
+    return div;
+  };
+
+  legend.addTo(myMap);
 
 });
+
 
 
